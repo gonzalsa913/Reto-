@@ -247,7 +247,6 @@ h1, h2, h3, p { margin: 0; }
   text-transform: uppercase;
   margin: var(--s-7) var(--s-1) var(--s-3);
 }
-.section-label:first-child { margin-top: 0; }
 
 .label { font-size: var(--fs-xs); color: var(--text-3); letter-spacing: 0.01em; line-height: var(--lh-snug); }
 .muted { color: var(--text-2); }
@@ -476,10 +475,12 @@ h1, h2, h3, p { margin: 0; }
   height: 44px;
   width: calc((100% - var(--s-4)) / 5);
   display: flex; justify-content: center;
+  transform: translateX(calc(var(--i, 0) * 100%));
   transition: transform 420ms var(--ease-soft-spring);
   will-change: transform;
   pointer-events: none;
 }
+.tabbar__brand { display: none; }
 .tabbar__ind::before { content: ""; width: 58px; height: 100%; border-radius: 14px; background: var(--accent-softer); }
 
 @media (min-width: 700px) {
@@ -915,6 +916,158 @@ html, body { overflow-x: hidden; }
   :root { --fs-3xl: 40px; --fs-2xl: 30px; --gutter: 16px; }
   .hero__ring { width: 184px; height: 184px; }
   .ring__pct { font-size: 44px; }
+}
+
+/* ==========================================================================
+   Escritorio: barra lateral y pantallas en columnas
+   ========================================================================== */
+
+.vh + .section-label,
+.vh + .grp > .section-label:first-child { margin-top: 0; }
+.tx__del, .rec__x, .hint-mouse { display: none; }
+
+@media (min-width: 1024px) {
+  :root { --side: 248px; --col-wide: 1080px; }
+
+  .app {
+    max-width: calc(var(--col-wide) + var(--side) + 96px);
+    padding: calc(var(--safe-top) + 44px) 48px 72px calc(var(--side) + 48px);
+  }
+
+  /* Barra lateral */
+  .tabbar {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: var(--side);
+    transform: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: inset -1px 0 0 var(--glass-line);
+  }
+  .tabbar__inner {
+    display: flex; flex-direction: column;
+    height: 100%; max-width: none;
+    margin: 0;
+    padding: 28px 16px;
+  }
+  .tabbar__brand {
+    display: flex; align-items: center; gap: 12px;
+    height: 56px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+    font-size: 15px; font-weight: 650; letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .tabbar__brand img { border-radius: 9px; flex: none; }
+  .tabbar__brand small { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--text-3); }
+  .tab {
+    flex-direction: row; justify-content: flex-start; gap: 12px;
+    height: 48px; min-height: 48px;
+    padding: 0 14px;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .tab svg { width: 20px; height: 20px; }
+  .tabbar__ind {
+    top: calc(28px + 56px + 20px);
+    left: 16px; right: 16px;
+    width: auto; height: 48px;
+    transform: translateY(calc(var(--i, 0) * 100%));
+  }
+  .tabbar__ind::before { width: 100%; border-radius: 12px; background: var(--accent-soft); }
+
+  .toast-host { left: var(--side); bottom: calc(32px + var(--safe-bottom)); }
+  .vh { margin-bottom: var(--s-6); }
+  .vh__title { font-size: 32px; }
+  .chart { height: 240px; }
+  #mkt-main .chart { height: 300px; }
+
+  /* Grilla base de cada pantalla */
+  .view > div { display: grid; column-gap: 20px; align-items: start; }
+  .view > div > * { grid-column: 1 / -1; min-width: 0; }
+
+  /* Hoy: anillo + métricas, gráfico, recomendaciones en dos columnas */
+  #view-hoy > div { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  #view-hoy .hero { grid-column: 1; }
+  #view-hoy .stats { grid-column: 2; align-self: stretch; margin-bottom: var(--s-3); }
+  #view-hoy .stats > .card { display: flex; flex-direction: column; justify-content: center; }
+  #view-hoy .stats .big { font-size: 56px; }
+  .recs { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--s-3); align-items: start; }
+  .recs > .card { margin: 0; }
+  .recs > :only-child { grid-column: 1 / -1; }
+
+  /* Compras: formulario fijo a la izquierda, historial a la derecha */
+  #view-compras > div { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); column-gap: 28px; }
+  #view-compras #buy-form { grid-column: 1; position: sticky; top: 32px; }
+  #view-compras #history { grid-column: 2; }
+  #view-compras #history > .section-label:first-child { margin-top: 0; }
+
+  /* Cartera: reparto y escenarios a la izquierda, activos a la derecha */
+  #view-cartera > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #view-cartera .grp--alloc { grid-column: 1; grid-row: 2; }
+  #view-cartera .grp--scen { grid-column: 1; grid-row: 3; }
+  #view-cartera .grp--assets { grid-column: 2; grid-row: 2 / span 2; }
+  #view-cartera .grp--assets > .section-label:first-child { margin-top: 0; }
+  #view-cartera .disclaimer { grid-row: 4; }
+
+  /* Mercado: dólar en una fila, activos en dos columnas */
+  .fx-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mkt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+  .mkt-grid > .card { margin: 0; }
+  #mkt-main .seg { max-width: 360px; }
+
+  /* Ajustes: plan y datos a la izquierda, recomendaciones a la derecha */
+  #view-ajustes > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #view-ajustes .grp--plan { grid-column: 1; grid-row: 2; }
+  #view-ajustes .grp--data { grid-column: 1; grid-row: 3; }
+  #view-ajustes .grp--recs { grid-column: 2; grid-row: 2 / span 2; }
+  #view-ajustes .grp--recs > .section-label:first-child { margin-top: 0; }
+  #view-ajustes .disclaimer { grid-row: 4; }
+  #view-ajustes .version { grid-row: 5; }
+}
+
+
+/* Mouse: estados hover y alternativas al gesto de deslizar */
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"]:hover { color: var(--accent); }
+  .mkt:hover { box-shadow: var(--shadow-2), inset 0 0 0 1px var(--line-strong); }
+  .mkt.is-selected:hover { box-shadow: var(--shadow-2), inset 0 0 0 1.5px var(--accent); }
+  .btn--primary:hover { background: var(--accent-strong); }
+  .btn:not(.btn--primary):not(.btn--ghost):hover { background: var(--surface-3); }
+  .btn--ghost:hover { background: var(--accent-softer); }
+  .list__action:hover { background: var(--surface-2); }
+  .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+  .chart { cursor: crosshair; }
+
+  .hint-touch { display: none; }
+  .hint-mouse { display: inline; }
+
+  .tx__del {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; flex: none;
+    margin-left: var(--s-1);
+    border-radius: 10px;
+    color: var(--text-3);
+    opacity: 0;
+    transition: opacity var(--d-1) ease, background-color var(--d-1) ease, color var(--d-1) ease;
+  }
+  .tx__del svg { width: 18px; height: 18px; }
+  .swipe:hover .tx__del, .tx__del:focus-visible { opacity: 1; }
+  .tx__del:hover { background: var(--negative-soft); color: var(--negative); }
+
+  .rec__x {
+    display: inline-flex; align-items: center; justify-content: center;
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    color: var(--text-3);
+    opacity: 0;
+    transition: opacity var(--d-1) ease, background-color var(--d-1) ease;
+  }
+  .rec__x svg { width: 16px; height: 16px; }
+  .rec:hover .rec__x, .rec__x:focus-visible { opacity: 1; }
+  .rec__x:hover { background: var(--surface-2); color: var(--text); }
+  .rec__top { padding-right: 28px; }
 }
 
 /* ==========================================================================

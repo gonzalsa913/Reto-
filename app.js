@@ -1091,7 +1091,7 @@ const HOY = {
     <div class="recs" id="recs">
       ${recs.length ? recs.map(recHTML).join('') : quietRec()}
     </div>
-    ${recs.length ? '<p class="swipe-hint">Deslizá una tarjeta para descartarla</p>' : ''}
+    ${recs.length ? '<p class="swipe-hint"><span class="hint-touch">Deslizá una tarjeta para descartarla</span><span class="hint-mouse">Pasá el mouse sobre una tarjeta para descartarla</span></p>' : ''}
     ${disclaimer()}`;
   },
 
@@ -1110,17 +1110,17 @@ const HOY = {
       }
     }
     $$('.rec[data-rec]', el).forEach((card) => {
-      makeSwipe(card, {
-        mode: 'dismiss',
-        onDismiss() {
-          state.dismissed[card.dataset.rec] = true; save();
-          const recs = $('#recs', el);
-          flip(el, () => {
-            card.remove();
-            if (!$('.rec', recs)) { recs.innerHTML = quietRec(); const h = $('.swipe-hint', el); if (h) h.remove(); }
-          });
-        },
-      });
+      const dismiss = () => {
+        state.dismissed[card.dataset.rec] = true; save();
+        const recs = $('#recs', el);
+        flip(el, () => {
+          card.remove();
+          if (!$('.rec', recs)) { recs.innerHTML = quietRec(); const h = $('.swipe-hint', el); if (h) h.remove(); }
+        });
+      };
+      makeSwipe(card, { mode: 'dismiss', onDismiss: dismiss });
+      const x = $('.rec__x', card);
+      if (x) x.addEventListener('click', (e) => { e.stopPropagation(); fadeOut(card, dismiss); });
     });
     // Hitos: celebración una sola vez
     const prog = progress();
@@ -1142,6 +1142,7 @@ const HOY = {
 
 function recHTML(r) {
   return `<article class="card rec rec--${r.tone}" data-rec="${esc(r.key)}" data-key="rec-${esc(r.key)}">
+    <button class="rec__x" type="button" aria-label="Descartar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
     <div class="rec__top">${icon(r.icon)}<h3 class="rec__title">${esc(r.title)}</h3></div>
     <p class="rec__body">${esc(r.body)}</p>
     ${r.split ? `<div class="rec__split">${r.split.map((x) => `<span class="chip ${x.v < 0.005 ? 'chip--neutral' : ''}"><small>${x.label} · ${x.sub}</small>${usd(x.v)}</span>`).join('')}</div>` : ''}
@@ -1320,12 +1321,13 @@ function renderHistory(animate) {
                     <div class="tx__body"><div class="tx__title">${p.asset} <span class="faint" style="font-weight:400">· ${fmtQty(qtyOf(p), p.asset)}</span></div>
                       <div class="tx__sub">${fmtDay(p.date)} · a ${fmtPrice(p.price)}</div></div>
                     <div class="tx__right"><div class="tx__amt">${usd(p.amount)}</div><div class="tx__fee">${p.fee > 0 ? `com. ${pct((p.fee / p.amount) * 100)}` : 'sin comisión'}</div></div>
+                    <button class="tx__del" type="button" data-del="${p.id}" aria-label="Borrar compra de ${p.asset}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 7h15M10 11v6M14 11v6M6.5 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5M9.5 7V4.5h5V7"/></svg></button>
                   </div>
                 </div>
               </div>`).join('')}
           </div>
         </div>`).join('')}
-      <p class="swipe-hint" data-key="hist-hint">Deslizá una compra a la izquierda para borrarla</p>`;
+      <p class="swipe-hint" data-key="hist-hint"><span class="hint-touch">Deslizá una compra a la izquierda para borrarla</span><span class="hint-mouse">Pasá el mouse sobre una compra para borrarla</span></p>`;
     $$('.swipe__content', host).forEach((c) => makeSwipe(c, { mode: 'reveal', reveal: 92 }));
     $$('[data-del]', host).forEach((b) => b.addEventListener('click', () => deletePurchase(b.dataset.del)));
   };
@@ -1373,7 +1375,7 @@ const CARTERA = {
       ${freshHTML()}
     </header>
 
-    <section class="card">
+    <div class="grp grp--alloc"><section class="card">
       <div class="card__head"><h2 class="card__title">Reparto real vs. objetivo</h2>
         ${has && !sk ? `<span class="card__meta ${within ? '' : 'neg'}">${within ? 'Dentro del umbral' : `Desvío de ${nf(0, 1).format(Math.abs(diff))} pp`}</span>` : ''}</div>
       ${sk ? '<span class="sk sk-num"></span>' : `
@@ -1392,7 +1394,8 @@ const CARTERA = {
       </div>
     </section>
 
-    <h2 class="section-label">Resultado por activo</h2>
+    </div>
+    <div class="grp grp--assets"><h2 class="section-label">Resultado por activo</h2>
     ${has ? `<section class="list">
       ${ASSET_KEYS.filter((a) => pf.per[a].n > 0).map((a) => {
         const h = pf.per[a];
@@ -1412,14 +1415,15 @@ const CARTERA = {
     <section class="card card--quiet empty"><h3>Sin compras todavía</h3><p>Cuando registres compras vas a ver el resultado de cada activo.</p>
       <button class="btn btn--primary press" data-go="compras" type="button">Registrar una compra</button></section>`}
 
-    <h2 class="section-label">Escenarios a fin del reto</h2>
+    </div>
+    <div class="grp grp--scen"><h2 class="section-label">Escenarios a fin del reto</h2>
     <section class="card">
       <table class="table">
         <thead><tr><th>Escenario</th><th>Valor final</th><th>Resultado</th></tr></thead>
         <tbody>${scen.map((r) => `<tr class="${r.x === 0 ? 'is-base' : ''}"><td>${r.x > 0 ? '+' : r.x < 0 ? MINUS : ''}${Math.abs(r.x)} %</td><td>${sk ? '—' : usd(r.final)}</td><td class="${sk ? '' : plCls(r.res)}">${sk ? '—' : FMT.susd(r.res)}</td></tr>`).join('')}</tbody>
       </table>
       <p class="footnote">Es una simulación, no una predicción. Supone que completás el reto (${usd0(prog.goal)} en total) y aplica cada variación a tu valor actual más lo que te falta aportar (${usd(remaining)}).</p>
-    </section>
+    </section></div>
     ${disclaimer()}`;
   },
 };
@@ -1449,7 +1453,7 @@ const MERCADO = {
       </button>
     </header>
 
-    <h2 class="section-label">Dólar${dStale ? '<span class="tag-stale">viejo</span>' : ''}${!market.dolar.data && d ? '<span class="tag-stale">prueba</span>' : ''}</h2>
+    <div class="grp grp--fx"><h2 class="section-label">Dólar${dStale ? '<span class="tag-stale">viejo</span>' : ''}${!market.dolar.data && d ? '<span class="tag-stale">prueba</span>' : ''}</h2>
     <div class="fx-grid">
       ${fx.map(([k, label]) => {
         const v = d && d[k];
@@ -1467,7 +1471,8 @@ const MERCADO = {
     </section>
     ${dStatus === 'error' && !d ? '<p class="footnote" style="padding:0 4px">No pudimos traer las cotizaciones. Probá actualizar en un rato.</p>' : ''}
 
-    <h2 class="section-label">Activos · 1 año</h2>
+    </div>
+    <div class="grp grp--assets"><h2 class="section-label">Activos · 1 año</h2>
     <section class="card" id="mkt-main">
       <div class="chart-head">
         <div><div class="label">${ASSETS[mktSel].name}</div>
@@ -1481,7 +1486,7 @@ const MERCADO = {
         : `<div class="empty" style="padding:24px 8px"><p style="margin:0">${sel.msg}</p></div>`}
     </section>
 
-    ${ASSET_KEYS.map((a, i) => this.assetCard(a, i)).join('')}
+    <div class="mkt-grid">${ASSET_KEYS.map((a, i) => this.assetCard(a, i)).join('')}</div></div>
 
     <p class="footnote" style="text-align:center">Dólar: dolarapi.com · Cripto: CoinGecko · ETF: Twelve Data. Los precios se guardan entre 15 y 30 minutos.</p>
     ${disclaimer()}`;
@@ -1575,7 +1580,7 @@ const AJUSTES = {
     return `
     <header class="vh"><div><div class="vh__eyebrow">Tu plan y tus datos</div><h1 class="vh__title">Ajustes</h1></div></header>
 
-    <h2 class="section-label">Plan</h2>
+    <div class="grp grp--plan"><h2 class="section-label">Plan</h2>
     <section class="list">
       ${numRow('daily', 'Aporte diario', s.daily, 'US$', `Meta anual: ${usd0(s.daily * 365)}`)}
       <div class="list__row"><label for="s-startDate">Fecha de inicio</label><input class="inline-input" type="date" id="s-startDate" data-set="startDate" value="${s.startDate}"></div>
@@ -1588,7 +1593,8 @@ const AJUSTES = {
       ${numRow('minAmount', 'Monto mínimo por compra', s.minAmount, 'US$')}
     </section>
 
-    <h2 class="section-label">Recomendaciones</h2>
+    </div>
+    <div class="grp grp--recs"><h2 class="section-label">Recomendaciones</h2>
     <section class="list">
       ${RULES.map((r) => {
         const cfg = s.rules[r.id];
@@ -1599,7 +1605,8 @@ const AJUSTES = {
     </section>
     <p class="note">Son reglas simples sobre tu plan. Nunca son señales de compra o venta.</p>
 
-    <h2 class="section-label">Datos de mercado</h2>
+    </div>
+    <div class="grp grp--data"><h2 class="section-label">Datos de mercado</h2>
     <section class="list">
       <div class="list__row"><label for="s-tdKey">Clave propia de Twelve Data<small>Opcional: ya viene una incluida</small></label>
         <input class="inline-input wide" id="s-tdKey" data-set="tdKey" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Usando la incluida" value="${esc(s.tdKey)}"></div>
@@ -1614,6 +1621,7 @@ const AJUSTES = {
         <label class="switch"><input type="checkbox" data-act="demo" ${state.demo ? 'checked' : ''} aria-label="Datos de prueba"><span></span></label></div>
       <button class="list__row list__action danger" data-act="clear" type="button">${svgI('<path d="M4.5 7h15M6.5 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5M9.5 7V4.5h5V7"/>')}Borrar todo</button>
     </section>
+    </div>
     ${disclaimer()}
     <p class="version">Reto 5 USD · v${APP_VERSION}</p>`;
   },
@@ -1791,7 +1799,7 @@ function moveIndicator(name, instant) {
   const ind = $('.tabbar__ind');
   const i = TAB_ORDER.indexOf(name);
   if (instant) { ind.style.transition = 'none'; requestAnimationFrame(() => { ind.style.transition = ''; }); }
-  ind.style.transform = `translateX(${i * 100}%)`;
+  ind.style.setProperty('--i', i);
   $$('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === name)));
 }
 
