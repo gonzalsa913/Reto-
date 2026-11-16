@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Reto 5 USD</title>
+  <meta name="description" content="Seguí tu reto de invertir 5 USD por día durante un año.">
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reto 5 USD">
+  <meta name="application-name" content="Reto 5 USD">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="theme-color" content="#f5f6f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#060908" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!-- Splash screens iOS (claro y oscuro) -->
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: light)" href="icons/splash-1290x2796-light.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: dark)" href="icons/splash-1290x2796-dark.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: light)" href="icons/splash-1179x2556-light.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: dark)" href="icons/splash-1179x2556-dark.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: light)" href="icons/splash-1170x2532-light.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: dark)" href="icons/splash-1170x2532-dark.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: light)" href="icons/splash-1125x2436-light.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (prefers-color-scheme: dark)" href="icons/splash-1125x2436-dark.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (prefers-color-scheme: light)" href="icons/splash-828x1792-light.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (prefers-color-scheme: dark)" href="icons/splash-828x1792-dark.png">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="status-shield" aria-hidden="true"></div>
+
+  <main class="app" id="app">
+    <section class="view" id="view-hoy" data-view="hoy" aria-label="Hoy"></section>
+    <section class="view" id="view-compras" data-view="compras" aria-label="Compras"></section>
+    <section class="view" id="view-cartera" data-view="cartera" aria-label="Cartera"></section>
+    <section class="view" id="view-mercado" data-view="mercado" aria-label="Mercado"></section>
+    <section class="view" id="view-ajustes" data-view="ajustes" aria-label="Ajustes"></section>
+  </main>
+
+  <nav class="tabbar" aria-label="Secciones">
+    <div class="tabbar__inner" role="tablist">
+      <span class="tabbar__ind" aria-hidden="true"></span>
+      <button class="tab" role="tab" data-tab="hoy" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+        <span>Hoy</span>
+      </button>
+      <button class="tab" role="tab" data-tab="compras" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>Compras</span>
+      </button>
+      <button class="tab" role="tab" data-tab="cartera" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8.5h8.5"/><path d="M20.5 12A8.5 8.5 0 1 1 12 3.5"/><path d="M15 3.9a8.5 8.5 0 0 1 5.1 5.1"/></svg>
+        <span>Cartera</span>
+      </button>
+      <button class="tab" role="tab" data-tab="mercado" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17l5-5.5 4 3.5 7.5-8.5"/><path d="M15 6.5h5v5"/></svg>
+        <span>Mercado</span>
+      </button>
+      <button class="tab" role="tab" data-tab="ajustes" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>
+        <span>Ajustes</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="toast-host" id="toasts" aria-live="polite"></div>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
+
+  <script src="app.js"></script>
+</body>
+</html>
