@@ -13,6 +13,10 @@ const LS_DATA = 'reto5:data';
 const LS_BACKUP = 'reto5:backup';
 const LS_CACHE = 'reto5:cache:';
 const TTL = 15 * 60 * 1000;
+const TTL_ETF = 30 * 60 * 1000; // SPY/QQQ usan créditos de Twelve Data: guardamos más tiempo
+// Clave incluida para que SPY y QQQ funcionen sin configurar nada.
+// Si cargás tu propia clave en Ajustes, se usa esa.
+const BUILTIN_TD_KEY = 'ceeb81257b2e4b738fc29f8bf6a352f8';
 const MILESTONES = [25, 50, 75, 100];
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reduced = () => RM.matches;
@@ -236,9 +240,9 @@ async function fetchJSON(url, ms = 12000) {
     return await res.json();
   } finally { clearTimeout(id); }
 }
-async function cached(key, url, parse, force) {
+async function cached(key, url, parse, force, ttl = TTL) {
   const c = readCache(key);
-  if (!force && c && Date.now() - c.t < TTL) return { data: c.data, t: c.t, status: 'ok' };
+  if (!force && c && Date.now() - c.t < ttl) return { data: c.data, t: c.t, status: 'ok' };
   try {
     const data = parse(await fetchJSON(url));
     writeCache(key, data);
@@ -280,8 +284,8 @@ function sourceDef(name) {
   if (name === 'dolar') return { key: 'dolar', url: 'https://dolarapi.com/v1/dolares', parse: parseDolar };
   const a = ASSETS[name];
   if (a.cg) return { key: 'cg:' + name, url: `https://api.coingecko.com/api/v3/coins/${a.cg}/market_chart?vs_currency=usd&days=365&interval=daily`, parse: parseCG };
-  const k = state.settings.tdKey.trim();
-  return { key: 'td:' + name, url: k ? `https://api.twelvedata.com/time_series?symbol=${name}&interval=1day&outputsize=400&apikey=${encodeURIComponent(k)}` : null, parse: parseTD };
+  const k = state.settings.tdKey.trim() || BUILTIN_TD_KEY;
+  return { key: 'td:' + name, url: k ? `https://api.twelvedata.com/time_series?symbol=${name}&interval=1day&outputsize=400&apikey=${encodeURIComponent(k)}` : null, parse: parseTD, ttl: TTL_ETF };
 }
 
 /* Hidratar desde cache al arrancar para pintar sin esperar */
@@ -289,7 +293,7 @@ function hydrateMarket() {
   SOURCES.forEach((name) => {
     const def = sourceDef(name);
     const c = readCache(def.key);
-    if (c) market[name] = { data: c.data, t: c.t, status: Date.now() - c.t < TTL ? 'ok' : 'stale' };
+    if (c) market[name] = { data: c.data, t: c.t, status: Date.now() - c.t < (def.ttl || TTL) ? 'ok' : 'stale' };
     else if (!def.url) market[name] = { status: 'nokey' };
   });
 }
@@ -304,7 +308,7 @@ async function loadSource(name, force) {
   }
   market[name] = { ...market[name], status: 'loading' };
   notifyMarket();
-  try { market[name] = await cached(def.key, def.url, def.parse, force); }
+  try { market[name] = await cached(def.key, def.url, def.parse, force, def.ttl); }
   catch (e) {
     const prev = market[name];
     market[name] = prev.data ? { ...prev, status: 'stale', error: e.message } : { status: 'error', error: e.message };
@@ -1479,7 +1483,7 @@ const MERCADO = {
 
     ${ASSET_KEYS.map((a, i) => this.assetCard(a, i)).join('')}
 
-    <p class="footnote" style="text-align:center">Dólar: dolarapi.com · Cripto: CoinGecko · ETF: Twelve Data. Los datos se guardan 15 minutos.</p>
+    <p class="footnote" style="text-align:center">Dólar: dolarapi.com · Cripto: CoinGecko · ETF: Twelve Data. Los precios se guardan entre 15 y 30 minutos.</p>
     ${disclaimer()}`;
   },
 
@@ -1597,10 +1601,10 @@ const AJUSTES = {
 
     <h2 class="section-label">Datos de mercado</h2>
     <section class="list">
-      <div class="list__row"><label for="s-tdKey">Clave de Twelve Data<small>Opcional, para SPY y QQQ</small></label>
-        <input class="inline-input wide" id="s-tdKey" data-set="tdKey" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Pegá tu clave" value="${esc(s.tdKey)}"></div>
+      <div class="list__row"><label for="s-tdKey">Clave propia de Twelve Data<small>Opcional: ya viene una incluida</small></label>
+        <input class="inline-input wide" id="s-tdKey" data-set="tdKey" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Usando la incluida" value="${esc(s.tdKey)}"></div>
     </section>
-    <p class="note">Creá una cuenta gratis en twelvedata.com y copiá tu API key. Se guarda solo en este dispositivo.</p>
+    <p class="note">SPY y QQQ ya funcionan sin hacer nada. Solo si la clave incluida dejara de andar, podés pegar otra de twelvedata.com.</p>
 
     <h2 class="section-label">Tus datos</h2>
     <section class="list">
@@ -1655,7 +1659,7 @@ function onSettingChange(e) {
     try { localStorage.removeItem(LS_CACHE + 'td:SPY'); localStorage.removeItem(LS_CACHE + 'td:QQQ'); } catch (err) { /* nada */ }
     market.SPY = { status: 'idle' }; market.QQQ = { status: 'idle' };
     loadSource('SPY', true); loadSource('QQQ', true);
-    toast(s.tdKey ? 'Clave guardada. Buscando SPY y QQQ…' : 'Clave borrada');
+    toast(s.tdKey ? 'Clave guardada. Buscando SPY y QQQ…' : 'Usando la clave incluida');
     return;
   }
   const lim = { daily: [0.5, 1000], cryptoTarget: [0, 100], deviation: [1, 50], minAmount: [0, 10000] }[key];

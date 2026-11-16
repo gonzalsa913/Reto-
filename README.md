@@ -54,11 +54,11 @@ python3 -m http.server 8000
 | --- | --- | --- |
 | Dólar MEP, CCL, oficial y blue | [dolarapi.com](https://dolarapi.com) `/v1/dolares` | No |
 | BTC y ETH (365 días, diario) | CoinGecko `market_chart` | No |
-| SPY y QQQ (diario) | Twelve Data `time_series` | Sí, gratis |
+| SPY y QQQ (diario) | Twelve Data `time_series` | Incluida |
 
-Para SPY y QQQ: creá una cuenta gratis en [twelvedata.com](https://twelvedata.com), copiá tu API key y pegala en **Ajustes → Clave de Twelve Data**. Se guarda solo en tu dispositivo.
+SPY y QQQ funcionan sin configurar nada: la app trae una clave de Twelve Data incluida (`BUILTIN_TD_KEY` en `app.js`). Como el sitio es público, cualquiera puede verla. Si alguien la abusa y se agotan los créditos, generá una clave nueva en twelvedata.com y reemplazala en `app.js`, o pegala en **Ajustes → Clave propia de Twelve Data** (esa se guarda solo en tu dispositivo y tiene prioridad).
 
-Las respuestas se guardan 15 minutos. Si una API falla, se muestra el último dato guardado marcado como **viejo**, y la pantalla nunca se rompe. Sin precio de mercado, un activo se valúa con tu último precio de compra (y se aclara).
+El plan gratis da 800 créditos por día y 8 por minuto; cada actualización usa 2 (SPY y QQQ). Los precios de SPY y QQQ se guardan 30 minutos y el resto 15. Si una API falla, se muestra el último dato guardado marcado como **viejo**, y la pantalla nunca se rompe. Sin precio de mercado, un activo se valúa con tu último precio de compra (y se aclara).
 
 ## Recomendaciones
 
